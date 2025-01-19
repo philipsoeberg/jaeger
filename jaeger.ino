@@ -86,7 +86,7 @@ void setup() {
   pinMode(PIN_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_A), read_encoder_irqhandler, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_B), read_encoder_irqhandler, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_B), read_button_irqhandler, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), read_button_irqhandler, CHANGE);
 
   // Set the LED pins as outputs
   pinMode(PIN_LED_RED, OUTPUT);
