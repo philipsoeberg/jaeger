@@ -1,0 +1,277 @@
+/* Sketch made by Thomas Jensen for Dinizuli 2025 - Franz Jäger v5 - 2025-01-19
+  
+   Designed HW setup (Arduino Every):
+   pin 2+3 : inv A and inv B terminals on a 100pp precicion rotary encoder (clockwise rotation for increasing values 0-99)
+   pin 7   : Button (to gnd)
+   pin 10  : Red LED
+   pin 11  : Green LED
+   pin 13  : Relay module for click sound and driving magnetic door lock
+
+   Encoder logic based on Oleg Mazurov's code for rotary encoder interrupt service routines for AVR micros
+   here https://chome.nerpa.tech/mcu/reading-rotary-encoder-on-arduino/
+   and using interrupts https://chome.nerpa.tech/mcu/rotary-encoder-interrupt-service-routine-for-avr-micros/
+*/
+
+/****************************************************************
+ *** CONSTANTS                                                ***
+ ****************************************************************/
+
+// Define rotary encoder pins
+#define ENC_A 2
+#define ENC_B 3
+#define BUTTON 7
+
+unsigned long _lastReadTime = micros(); 
+int maxCount = 100;
+static bool clicked = false;
+static bool wheelCW = true;
+const unsigned long W1 = 1500000;      // wait time (µs) on correct code before moving on
+const unsigned long Wexit = 300;       // wait time(ms)  after final code to open door lock (max 500ms)
+const int ledPin1 = 10;                // Pin for the first color LED (Red)
+const int ledPin2 = 11;                // Pin for the second color LED (Green)
+const int relayPin = 13;               // Pin connected to the relay module
+
+volatile int counter = 0;
+
+const int C1 = 68;                     // Code 1
+bool C1CW = false;
+const int C2 = 25;                     // Code 2
+bool C2CW = true;
+const int C3 = 44;                     // Code 3
+bool C3CW = false;
+
+
+/****************************************************************
+ *** SETUP                                                    ***
+ ****************************************************************/
+void setup() {
+
+  /*
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
+  {
+  Serial.println(F("SSD1306 allocation failed"));
+  for (;;); // Don't proceed, loop forever
+  }
+  // Show initial display buffer contents on the screen --
+  // the library initializes this with an Adafruit splash screen.
+  display.display();
+  delay(1000); // Pause for 1 seconds
+
+  // Clear the buffer
+  display.clearDisplay();
+  display.display();
+
+  // Set display text style and colour
+  display.setTextSize(2); // Draw 2X-scale text
+  display.setTextColor(SSD1306_WHITE);
+  */
+
+  // Set encoder pins and attach interrupts
+  pinMode(ENC_A, INPUT_PULLUP);
+  pinMode(ENC_B, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(ENC_A), read_encoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENC_B), read_encoder, CHANGE);
+  // Set the LED pins as outputs
+  pinMode(ledPin1, OUTPUT);
+  pinMode(ledPin2, OUTPUT);
+  // Set the relay pin as output
+  pinMode(relayPin, OUTPUT);
+
+  // Start the serial monitor to show output
+  Serial.begin(9600);
+  ledRedOn();
+  //digitalWrite(ledPin1, HIGH);
+  //digitalWrite(ledPin2, LOW);
+
+}
+
+/****************************************************************
+ *** MAIN LOOP                                                ***
+ ****************************************************************/
+
+void loop() {
+  static int lastCounter = 99;
+  //static int previousCounter = 0;
+  //static int lastCounterKey = 0;
+  static int codeState = 1;
+  unsigned long wait = 0;
+
+  // If count has changed print the new debug values to serial
+  if(counter != lastCounter || clicked) {
+  /*
+    Serial.print(_lastReadTime);
+    Serial.print(" , micros-last:");
+    Serial.print(micros());
+    Serial.print(" , counter:");
+    Serial.print(counter);
+    Serial.print(" , WheelCW:");
+    Serial.print(wheelCW);
+    Serial.print(" , C2CW:");
+    Serial.print(C2CW);
+    Serial.print(" , C3CW:");
+    Serial.print(C3CW);
+    Serial.print(" , State:");
+    Serial.println(codeState);
+  
+    display.clearDisplay();
+    display.setCursor(0, 0); // Start at top-left corner
+    display.print("#: ");
+    display.println(counter);
+    display.print("St: ");
+    display.print(codeState);
+    display.display();  
+   // previousCounter = lastCounter;
+  */
+    lastCounter = counter;
+  }
+
+/*** Reset click state to enable reset to codeState 1 from any state ***/
+if(clicked && counter != C1 && counter != C2 && counter != C3) {
+  clicked = false;
+  //Serial.print(".");
+}
+
+/*** codeState 1 *************************************************/
+  while(codeState == 1 && counter == C1 && wheelCW == C1CW) {
+    if(!clicked){
+      click();
+      wait = micros();
+    }
+    if(counter == C1 && ((micros() - wait) > W1)) {
+      codeState = 2;
+      //Serial.print("-set codeState 2-");
+      //Serial.print((micros() - wait));
+      ledOff();
+      delay(10);
+      ledRedOn();
+    }
+  }
+
+/*** codeState reset to state 1 ***********************************/
+ if((codeState == 2 && (counter != C1 || counter == C1+1) && wheelCW != C2CW) || 
+    (codeState == 2 && (counter == C2+1) && wheelCW == C2CW) ||
+    (codeState == 3 && (counter != C2 || counter == C2-1) && wheelCW != C3CW) ||
+    (codeState == 3 && (counter == C3-1) && wheelCW == C3CW)) {
+    codeState = 1;
+    //Serial.print("+Reset to state 1+");
+  }
+
+/*** codeState 2 *************************************************/
+  while(codeState == 2 && counter == C2) {
+    if(!clicked) {
+      click();
+      wait = micros();
+    }
+
+    if(counter == C2 && ((micros() - wait) > W1*2)) {
+      codeState = 3;
+      //Serial.print("-set codeState 3-");
+      ledOff();
+      delay(10);
+      ledRedOn();
+    }
+  }
+  
+/*** codeState 3 *************************************************/
+  while(codeState == 3 && counter == C3) {
+    if (!clicked) {
+      click();
+      wait = micros();
+    }
+
+    if (counter == C3 && ((micros() - wait) > W1*3)) {
+      ledOff();
+      ledGreenOn();
+      // Relay open for door opening
+      
+      digitalWrite(relayPin, HIGH);
+
+      /*
+      display.clearDisplay();
+      display.setCursor(0, 0); // Start at top-left corner
+      display.print("Lock OPEN");
+      display.display();  
+      */
+
+      delay(300);  
+      digitalWrite(relayPin, LOW);              // Turn the relay off
+
+      ledOff();
+      ledRedOn();
+
+      codeState = 1;
+
+    }
+  }
+}
+
+/****************************************************************
+ *** FUNCTIONS                                                ***
+ ****************************************************************/
+void read_encoder() {
+  // Encoder interrupt routine for both pins. 
+  // Updates counter and wheelCW
+  // if they are valid and have rotated a full indent
+  //Serial.print("=");
+  static uint8_t old_AB = 3;  // Lookup table index
+  static int8_t encval = 0;   // Encoder value  
+  static const int8_t enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0}; // Lookup table
+
+  old_AB <<=2;  // Remember previous state
+
+  if (digitalRead(ENC_A)) old_AB |= 0x02; // Add current state of pin A
+  if (digitalRead(ENC_B)) old_AB |= 0x01; // Add current state of pin B
+  
+  encval += enc_states[( old_AB & 0x0f )];
+
+  // Update counter if encoder has rotated a full indent, that is at least 4 steps
+  if( encval > 3 ) {        // Four steps forward
+    int changevalue = 1;
+    //_lastIncReadTime = micros();
+    _lastReadTime = micros();
+
+    if(counter == (maxCount-1)) {
+      counter = -1;
+    } 
+    counter = counter + changevalue;   // Update counter
+    encval = 0;
+    wheelCW = true;                    // wheel turned clockwise
+  }
+  else if( encval < -3 ) {             // Four steps backward
+    int changevalue = -1;
+    //_lastDecReadTime = micros();
+    _lastReadTime = micros();    
+
+    if(counter == 0) {
+      counter = maxCount;
+    } 
+    counter = counter + changevalue;    // Update counter
+    encval = 0;
+    wheelCW = false;                   // wheel turned counter clockwise
+
+  }
+}
+
+
+void ledOff() {
+  digitalWrite(ledPin1, LOW);
+  digitalWrite(ledPin2, LOW);
+}
+
+void ledRedOn() {
+  digitalWrite(ledPin1, HIGH);
+  digitalWrite(ledPin2, LOW);
+}
+
+void ledGreenOn() {
+  digitalWrite(ledPin1, LOW);
+  digitalWrite(ledPin2, HIGH);
+}
+
+void click() {
+  digitalWrite(relayPin, HIGH);   // Turn Relay On
+  delay(10);  // Wait for 20 ms
+  digitalWrite(relayPin, LOW);    // Turn the relay off
+  clicked = true;
+}
