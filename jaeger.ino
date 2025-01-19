@@ -27,7 +27,7 @@
 #define RELAY_AUDIO_CLUE_DELAY (10)      // in ms
 #define RELAY_DOOROPEN_DELAY   (300)     // in ms
 #define LED_VISUAL_CLUE_DELAY  (10)      // in ms
-#define ALARM_TIMEOUT          (900000)  // in ms. 15 minutes
+#define ALARM_TIMEOUT          (long)(900000)  // in ms. 15 minutes
 
 // Encoder value
 #define ENCODER_RESET_VALUE   (0)
@@ -45,15 +45,15 @@ volatile bool buttonPressed = false;
 // Pass codes
 #define CODE1VALUE (68)                         // Code 1
 #define CODE1DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
-#define CODE1GRACETIMEOUT (1500)                // Code 1 grace periode with no encoder movement before code accept
+#define CODE1GRACETIMEOUT (long)(1500)          // Code 1 grace periode with no encoder movement before code accept
 
 #define CODE2VALUE (25)                         // Code 2
 #define CODE2DIRECTION (ENCODER_DIRECTION_CW)   // Required direction to accept code
-#define CODE2GRACETIMEOUT (3000)                // Code 2 grace periode with no encoder movement before code accept
+#define CODE2GRACETIMEOUT (long)(3000)          // Code 2 grace periode with no encoder movement before code accept
 
 #define CODE3VALUE (44)                         // Code 3
 #define CODE3DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
-#define CODE3GRACETIMEOUT (4500)                // Code 3 grace periode with no encoder movement before code accept
+#define CODE3GRACETIMEOUT (long)(4500)          // Code 3 grace periode with no encoder movement before code accept
 
 enum States {
   ST_RESET,
@@ -103,8 +103,8 @@ void setup() {
 
 void loop() {
   static int prevEncoderValue = ENCODER_OUTSIDE_RANGE;
-  static int alarmTimer = 0;
-  static int graceTimer = 0;
+  static long alarmTimer = 0;
+  static long graceTimer = 0;
   static bool acceptButtonChange = false;
 
   if (acceptButtonChange == false && buttonPressed == true) {
@@ -269,8 +269,8 @@ void loop() {
       // Listen for button changes
       if (acceptButtonChange == false) { acceptButtonChange = true; }
 
-      //TODO: LED flashy
-      //TODO: Relay noisy
+      //TODO: LED flashy (250ms on @ 2hz)
+      //TODO: Relay noisy (10ms on @ 10hz) for 5 sec
 
       // If button is pressed, reset statemachine
       if (buttonPressed == true) { state = ST_RESET; return; }
