@@ -114,15 +114,17 @@ void loop() {
   }
 
   #ifdef SERIAL_DEBUG
-    Serial.print(_lastReadTime);
-    Serial.print(" , micros-last:");
-    Serial.print(micros());
-    Serial.print(" , encoderValue:");
-    Serial.print(encoderValue);
-    Serial.print(" , encoderDirection:");
-    Serial.print(encoderDirection);
-    Serial.print(" , state:");
-    Serial.println(state);
+    if(encoderValue != prevEncoderValue) {
+      Serial.print(_lastReadTime);
+      Serial.print(" , micros-last:");
+      Serial.print(micros());
+      Serial.print(" , encoderValue:");
+      Serial.print(encoderValue);
+      Serial.print(" , encoderDirection:");
+      Serial.print(encoderDirection);
+      Serial.print(" , state:");
+      Serial.println(state);
+    }
   #endif
 
   switch(state) {
