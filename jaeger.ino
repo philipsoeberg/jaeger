@@ -178,8 +178,8 @@ void loop() {
       // If alarmTimeout, Goto Alarm. Game over.
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
-      // If encoderDirection is not correct direction, go back to seek state1
-      if (encoderDirection != CODE2DIRECTION) { state = ST_SEEK_CODE_1; return; }
+      // If encoderDirection is not correct direction, go back to seek state1, but only after move away from previous code
+      if (encoderValue != CODE1VALUE && encoderDirection != CODE2DIRECTION) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for code arrival
       if (encoderValue == CODE2VALUE && encoderDirection == CODE2DIRECTION) {
@@ -214,8 +214,8 @@ void loop() {
       // If alarmTimeout, Goto Alarm. Game over.
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
-      // If encoderDirection is not correct direction, go back to seek state1
-      if (encoderDirection != CODE3DIRECTION) { state = ST_SEEK_CODE_1; return; }
+      // If encoderDirection is not correct direction, go back to seek state1, but only after move away from previous code
+      if (encoderValue != CODE2VALUE && encoderDirection != CODE3DIRECTION) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for code arrival
       if (encoderValue == CODE3VALUE && encoderDirection == CODE3DIRECTION) {
