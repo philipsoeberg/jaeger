@@ -296,6 +296,9 @@ void read_encoder_irqhandler() {
   // Encoder interrupt routine for both pins. 
   // Updates encoderValue and encoderDirection
   // if they are valid and have rotated a full indent
+  #ifdef SERIAL_DEBUG
+    Serial.print("=>");
+  #endif
   
   static uint8_t old_AB = 3;  // Lookup table index
   static int8_t encval = 0;   // Encoder value  
@@ -307,6 +310,11 @@ void read_encoder_irqhandler() {
   if (digitalRead(PIN_ENCODER_B)) old_AB |= 0x01; // Add current state of pin B
   
   encval += enc_states[( old_AB & 0x0f )];
+
+  #ifdef SERIAL_DEBUG
+    Serial.print(" encval=");
+    Serial.print(encval);
+  #endif
 
   // Update encoderValue if encoder has rotated a full indent, that is at least 4 steps
   if( encval > 3 ) {        // Four steps forward
@@ -333,11 +341,11 @@ void read_encoder_irqhandler() {
   }
 
   #ifdef SERIAL_DEBUG
-    Serial.print("=> encoderValue=");
+    Serial.print(" encoderValue=");
     Serial.print(encoderValue);
     Serial.print(" encoderDirection=");
     Serial.print(encoderDirection);
-    Serial.println("");
+    Serial.println();
   #endif
 }
 
