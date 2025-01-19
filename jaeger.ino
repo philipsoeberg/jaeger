@@ -299,8 +299,10 @@ void loop() {
         audioVisualTimer = millis();
       }
       if (audioVisualTimerIteration % 25 == 0) {  //every 250ms
-        if (audioVisualTimerIteration&1 == 1) ledRedOn(); //on odd do red on
-        if (audioVisualTimerIteration&1 == 0) ledOff();   //on even do red off
+        ledRedOn();
+      }
+      if (audioVisualTimerIteration % 50 == 0) {  //every 500ms
+        ledOff();
       }
       if (audioVisualTimerIteration % 10 == 0) {  //every 100ms
         if (audioVisualTimerIteration < 500) {    //for up to 5000 ms (5 seconds)
