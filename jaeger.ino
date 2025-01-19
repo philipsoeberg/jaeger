@@ -73,9 +73,6 @@ enum States {
 };
 enum States state = ST_RESET;
 
-unsigned long _lastReadTime = micros(); 
-int maxCount = 100;
-
 // ****************************************************************
 // *** SETUP                                                    ***
 // ****************************************************************
@@ -116,9 +113,6 @@ void loop() {
 
   #ifdef SERIAL_DEBUG
     if(encoderValue != prevEncoderValue) {
-      Serial.print(_lastReadTime);
-      Serial.print(" , micros-last:");
-      Serial.print(micros());
       Serial.print(" , encoderValue:");
       Serial.print(encoderValue);
       Serial.print(" , encoderDirection:");
@@ -296,10 +290,10 @@ void read_encoder_irqhandler() {
   // Encoder interrupt routine for both pins. 
   // Updates encoderValue and encoderDirection
   // if they are valid and have rotated a full indent
-  #ifdef SERIAL_DEBUG
-    Serial.print("=>");
-  #endif
-  
+  // #ifdef SERIAL_DEBUG
+  //   Serial.print("=>");
+  // #endif
+  static int maxCount = ENCODER_OUTSIDE_RANGE;
   static uint8_t old_AB = 3;  // Lookup table index
   static int8_t encval = 0;   // Encoder value  
   static const int8_t enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0}; // Lookup table
@@ -311,15 +305,14 @@ void read_encoder_irqhandler() {
   
   encval += enc_states[( old_AB & 0x0f )];
 
-  #ifdef SERIAL_DEBUG
-    Serial.print(" encval=");
-    Serial.print(encval);
-  #endif
+  // #ifdef SERIAL_DEBUG
+  //   Serial.print(" encval=");
+  //   Serial.print(encval);
+  // #endif
 
   // Update encoderValue if encoder has rotated a full indent, that is at least 4 steps
   if( encval > 3 ) {        // Four steps forward
     int changevalue = 1;
-    _lastReadTime = micros();
     if(encoderValue == (maxCount-1)) {
       encoderValue = -1;
     } 
@@ -330,7 +323,6 @@ void read_encoder_irqhandler() {
   }
   else if( encval < -3 ) {             // Four steps backward
     int changevalue = -1;
-    _lastReadTime = micros();
     if(encoderValue == 0) {
       encoderValue = maxCount;
     } 
@@ -340,13 +332,13 @@ void read_encoder_irqhandler() {
     encoderDirection = ENCODER_DIRECTION_CCW;
   }
 
-  #ifdef SERIAL_DEBUG
-    Serial.print(" encoderValue=");
-    Serial.print(encoderValue);
-    Serial.print(" encoderDirection=");
-    Serial.print(encoderDirection);
-    Serial.println();
-  #endif
+  // #ifdef SERIAL_DEBUG
+  //   Serial.print(" encoderValue=");
+  //   Serial.print(encoderValue);
+  //   Serial.print(" encoderDirection=");
+  //   Serial.print(encoderDirection);
+  //   Serial.println();
+  // #endif
 }
 
 void read_button_irqhandler() {
