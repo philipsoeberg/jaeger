@@ -12,9 +12,8 @@
    and using interrupts https://chome.nerpa.tech/mcu/rotary-encoder-interrupt-service-routine-for-avr-micros/
 */
 
-// Enable Serial & Display Debug outut. Comment out to disable.
-// #define SERIAL_DEBUG
-// #define DISPLAY_DEBUG
+// Enable Serial Debug outut. Comment out to disable.
+#define SERIAL_DEBUG
 
 // Define rotary encoder pins
 #define PIN_ENCODER_A   (2)
@@ -74,14 +73,11 @@ enum States {
 };
 enum States state = ST_RESET;
 
+unsigned long _lastReadTime = micros(); 
+
 // ****************************************************************
 // *** SETUP                                                    ***
 // ****************************************************************
-#ifdef SERIAL_DEBUG
-#define SERIALPRINT(...) Serial.print(__VA_ARGS__)
-#else
-#define SERIALPRINT(...) yield()
-#endif
 void setup() {
   // Setup pins and attach interrupts
   pinMode(PIN_ENCODER_A, INPUT_PULLUP);
@@ -116,6 +112,18 @@ void loop() {
   if (acceptButtonChange == false && buttonPressed == true) {
     buttonPressed = false;
   }
+
+  #ifdef SERIAL_DEBUG
+    Serial.print(_lastReadTime);
+    Serial.print(" , micros-last:");
+    Serial.print(micros());
+    Serial.print(" , encoderValue:");
+    Serial.print(encoderValue);
+    Serial.print(" , encoderDirection:");
+    Serial.print(encoderDirection);
+    Serial.print(" , state:");
+    Serial.println(state);
+  #endif
 
   switch(state) {
 
@@ -285,37 +293,41 @@ void read_encoder_irqhandler() {
   // Encoder interrupt routine for both pins. 
   // Updates encoderValue and encoderDirection
   // if they are valid and have rotated a full indent
-  SERIALPRINT("=");
-  static const int _maxCount = ENCODER_OUTSIDE_RANGE;
-  static uint8_t _old_AB = 3;  // Lookup table index
-  static int8_t _encval = 0;   // Encoder value  
-  static const int8_t _enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0}; // Lookup table
+  #ifdef SERIAL_DEBUG
+    Serial.print("=");
+  #endif
+  static const int maxCount = ENCODER_OUTSIDE_RANGE;
+  static uint8_t old_AB = 3;  // Lookup table index
+  static int8_t encval = 0;   // Encoder value  
+  static const int8_t enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0}; // Lookup table
 
-  _old_AB <<=2;  // Remember previous state
+  old_AB <<=2;  // Remember previous state
 
-  if (digitalRead(PIN_ENCODER_A)) _old_AB |= 0x02; // Add current state of pin A
-  if (digitalRead(PIN_ENCODER_B)) _old_AB |= 0x01; // Add current state of pin B
+  if (digitalRead(PIN_ENCODER_A)) old_AB |= 0x02; // Add current state of pin A
+  if (digitalRead(PIN_ENCODER_B)) old_AB |= 0x01; // Add current state of pin B
   
-  _encval += _enc_states[( _old_AB & 0x0f )];
+  encval += enc_states[( old_AB & 0x0f )];
 
   // Update encoderValue if encoder has rotated a full indent, that is at least 4 steps
-  if( _encval > 3 ) {        // Four steps forward
+  if( encval > 3 ) {        // Four steps forward
     int changevalue = 1;
-    if(encoderValue == (_maxCount-1)) {
+    _lastReadTime = micros();
+    if(encoderValue == (maxCount-1)) {
       encoderValue = -1;
     } 
     encoderValue = encoderValue + changevalue;   // Update encoderValue
-    _encval = 0;
+    encval = 0;
     // wheel turned clockwise
     encoderDirection = ENCODER_DIRECTION_CW;                    
   }
-  else if( _encval < -3 ) {             // Four steps backward
+  else if( encval < -3 ) {             // Four steps backward
     int changevalue = -1;
+    _lastReadTime = micros();
     if(encoderValue == 0) {
-      encoderValue = _maxCount;
+      encoderValue = maxCount;
     } 
     encoderValue = encoderValue + changevalue;    // Update encoderValue
-    _encval = 0;
+    encval = 0;
     // wheel turned encoderValue clockwise
     encoderDirection = ENCODER_DIRECTION_CCW;
   }
@@ -368,10 +380,4 @@ void relayOpenDoor() {
   relayOn();
   delay(RELAY_DOOROPEN_DELAY);  
   relayOff();
-  #ifdef DISPLAY_DEBUG
-    display.clearDisplay();
-    display.setCursor(0, 0); // Start at top-left corner
-    display.print("Lock OPEN");
-    display.display();  
-  #endif
 }
