@@ -70,6 +70,7 @@ enum States {
   ST_CODES_ACCEPTED,
   ST_IDLING_WAIT_GAME_RESET,
   ST_ALARM_TRIGGERED,
+  ST_ALARM_TRIGGERED_BODY,
 };
 enum States state = ST_RESET;
 
@@ -106,6 +107,9 @@ void loop() {
   static unsigned long alarmTimer = 0;
   static unsigned long graceTimer = 0;
   static bool acceptButtonChange = false;
+  static bool resetAudioVisualCycle = false;
+  static unsigned long audioVisualTimer = 0;
+  static int audioVisualTimerIteration = 0;
 
   if (acceptButtonChange == false && buttonPressed == true) {
     buttonPressed = false;
@@ -129,6 +133,8 @@ void loop() {
       acceptButtonChange = false;
       prevEncoderValue = encoderValue;
       state = ST_IDLING_WAITING_TO_BEGIN;
+      resetAudioVisualCycle = true;
+      audioVisualTimer = millis();
       break;
 
     case ST_IDLING_WAITING_TO_BEGIN:
@@ -137,8 +143,15 @@ void loop() {
         alarmTimer = millis();
         ledRedOn();
         state = ST_SEEK_CODE_1;
+        return;
       }
-      //TODO: RED led blip 10ms @ 1hz
+      //RED led blip 10ms every 1 second
+      if ((millis() - audioVisualTimer) > 1000) {
+        ledRedOn();
+        delay(10);
+        ledOff();
+        audioVisualTimer = millis();
+      }
       break;
 
     case ST_SEEK_CODE_1:
@@ -266,14 +279,34 @@ void loop() {
       break;
 
     case ST_ALARM_TRIGGERED:
+      // Setup alarm
+      audioVisualTimer = millis();
+      audioVisualTimerIteration = 0;
+      state = ST_ALARM_TRIGGERED_BODY;
+      return;
+    
+    case ST_ALARM_TRIGGERED_BODY:
       // Listen for button changes
       if (acceptButtonChange == false) { acceptButtonChange = true; }
 
-      //TODO: LED flashy (250ms on @ 2hz)
-      //TODO: Relay noisy (10ms on @ 10hz) for 5 sec
-
       // If button is pressed, reset statemachine
       if (buttonPressed == true) { state = ST_RESET; return; }
+
+      //LED flashy (250ms ON every 500ms)
+      //Relay noisy (10ms ON every 100ms for 5 seconds)
+      if ((millis() - audioVisualTimer) > 10) {
+        audioVisualTimerIteration++; //this will ++ every 10ms'ich
+        audioVisualTimer = millis();
+      }
+      if (audioVisualTimerIteration % 25 == 0) {  //every 250ms
+        if (audioVisualTimerIteration&1 == 1) ledRedOn(); //on odd do red on
+        if (audioVisualTimerIteration&1 == 0) ledOff();   //on even do red off
+      }
+      if (audioVisualTimerIteration % 10 == 0) {  //every 100ms
+        if (audioVisualTimerIteration < 500) {    //for up to 5000 ms (5 seconds)
+          relayAudioClue();                       //do relayAudioClue
+        }
+      }
 
       break;
 
