@@ -74,6 +74,7 @@ enum States {
 enum States state = ST_RESET;
 
 unsigned long _lastReadTime = micros(); 
+int maxCount = 100;
 
 // ****************************************************************
 // *** SETUP                                                    ***
@@ -295,10 +296,7 @@ void read_encoder_irqhandler() {
   // Encoder interrupt routine for both pins. 
   // Updates encoderValue and encoderDirection
   // if they are valid and have rotated a full indent
-  #ifdef SERIAL_DEBUG
-    Serial.print("=");
-  #endif
-  static const int maxCount = ENCODER_OUTSIDE_RANGE;
+  
   static uint8_t old_AB = 3;  // Lookup table index
   static int8_t encval = 0;   // Encoder value  
   static const int8_t enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0}; // Lookup table
@@ -333,6 +331,14 @@ void read_encoder_irqhandler() {
     // wheel turned encoderValue clockwise
     encoderDirection = ENCODER_DIRECTION_CCW;
   }
+
+  #ifdef SERIAL_DEBUG
+    Serial.print("=> encoderValue=");
+    Serial.print(encoderValue);
+    Serial.print(" encoderDirection=");
+    Serial.print(encoderDirection);
+    Serial.println("");
+  #endif
 }
 
 void read_button_irqhandler() {
