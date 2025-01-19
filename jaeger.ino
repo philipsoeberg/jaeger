@@ -93,7 +93,7 @@ void setup() {
 
   // Start the serial monitor to show output
   #ifdef SERIAL_DEBUG
-    Serial.begin(9600);
+    Serial.begin(115200);
   #endif
 }
 
