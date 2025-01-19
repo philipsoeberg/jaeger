@@ -45,15 +45,15 @@ volatile bool buttonPressed = false;
 // Pass codes
 #define CODE1VALUE (68)                         // Code 1
 #define CODE1DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
-#define CODE1GRACETIMEOUT (long)(1500)          // Code 1 grace periode with no encoder movement before code accept
+#define CODE1GRACETIMEOUT (unsigned long)(1500) // Code 1 grace periode with no encoder movement before code accept
 
 #define CODE2VALUE (25)                         // Code 2
 #define CODE2DIRECTION (ENCODER_DIRECTION_CW)   // Required direction to accept code
-#define CODE2GRACETIMEOUT (long)(3000)          // Code 2 grace periode with no encoder movement before code accept
+#define CODE2GRACETIMEOUT (unsigned long)(3000) // Code 2 grace periode with no encoder movement before code accept
 
 #define CODE3VALUE (44)                         // Code 3
 #define CODE3DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
-#define CODE3GRACETIMEOUT (long)(4500)          // Code 3 grace periode with no encoder movement before code accept
+#define CODE3GRACETIMEOUT (unsigned long)(4500) // Code 3 grace periode with no encoder movement before code accept
 
 enum States {
   ST_RESET,
@@ -103,8 +103,8 @@ void setup() {
 
 void loop() {
   static int prevEncoderValue = ENCODER_OUTSIDE_RANGE;
-  static long alarmTimer = 0;
-  static long graceTimer = 0;
+  static unsigned long alarmTimer = 0;
+  static unsigned long graceTimer = 0;
   static bool acceptButtonChange = false;
 
   if (acceptButtonChange == false && buttonPressed == true) {
