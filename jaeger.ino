@@ -109,7 +109,7 @@ void loop() {
   static bool acceptButtonChange = false;
   static bool resetAudioVisualCycle = false;
   static unsigned long audioVisualTimer = 0;
-  static int audioVisualTimerIteration = 0;
+  static unsigned long audioVisualTimerIteration = 0;
 
   if (acceptButtonChange == false && buttonPressed == true) {
     buttonPressed = false;
