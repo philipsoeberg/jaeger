@@ -43,17 +43,17 @@ volatile bool encoderDirection = ENCODER_DIRECTION_CW;
 volatile bool buttonPressed = false;
 
 // Pass codes
-#define CODE1VALUE (68)                         // Code 1
-#define CODE1DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
-#define CODE1GRACETIMEOUT (unsigned long)(1500) // Code 1 grace periode with no encoder movement before code accept
+#define CODE1_VALUE (68)                         // Code 1
+#define CODE1_DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
+#define CODE1_GRACETIMEOUT (unsigned long)(1500) // Code 1 grace periode with no encoder movement before code accept
 
-#define CODE2VALUE (25)                         // Code 2
-#define CODE2DIRECTION (ENCODER_DIRECTION_CW)   // Required direction to accept code
-#define CODE2GRACETIMEOUT (unsigned long)(3000) // Code 2 grace periode with no encoder movement before code accept
+#define CODE2_VALUE (25)                         // Code 2
+#define CODE2_DIRECTION (ENCODER_DIRECTION_CW)   // Required direction to accept code
+#define CODE2_GRACETIMEOUT (unsigned long)(3000) // Code 2 grace periode with no encoder movement before code accept
 
-#define CODE3VALUE (44)                         // Code 3
-#define CODE3DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
-#define CODE3GRACETIMEOUT (unsigned long)(4500) // Code 3 grace periode with no encoder movement before code accept
+#define CODE3_VALUE (44)                         // Code 3
+#define CODE3_DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
+#define CODE3_GRACETIMEOUT (unsigned long)(4500) // Code 3 grace periode with no encoder movement before code accept
 
 enum States {
   ST_RESET,
@@ -159,7 +159,7 @@ void loop() {
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
       // Wait for code arrival
-      if (encoderValue == CODE1VALUE && encoderDirection == CODE1DIRECTION) {
+      if (encoderValue == CODE1_VALUE && encoderDirection == CODE1_DIRECTION) {
         relayAudioClue();
         graceTimer = millis();
         state = ST_WAIT_CODE_1;
@@ -171,10 +171,10 @@ void loop() {
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
       // If encoderValue has changed away from Code, go back to seeking code1
-      if (encoderValue != CODE1VALUE) { state = ST_SEEK_CODE_1; return; }
+      if (encoderValue != CODE1_VALUE) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for encoder grace timeout before accepting code
-      if ((millis() - graceTimer) > CODE1GRACETIMEOUT) { state = ST_ACCEPT_CODE_1; return; }
+      if ((millis() - graceTimer) > CODE1_GRACETIMEOUT) { state = ST_ACCEPT_CODE_1; return; }
 
       break;
 
@@ -192,10 +192,10 @@ void loop() {
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
       // If encoderDirection is not correct direction, go back to seek state1, but only after move away from previous code
-      if (encoderValue != CODE1VALUE && encoderDirection != CODE2DIRECTION) { state = ST_SEEK_CODE_1; return; }
+      if (encoderValue != CODE1_VALUE && encoderDirection != CODE2_DIRECTION) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for code arrival
-      if (encoderValue == CODE2VALUE && encoderDirection == CODE2DIRECTION) {
+      if (encoderValue == CODE2_VALUE && encoderDirection == CODE2_DIRECTION) {
         relayAudioClue();
         graceTimer = millis();
         state = ST_WAIT_CODE_2;
@@ -207,10 +207,10 @@ void loop() {
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
       // If encoderValue has changed away from Code, go back to seeking code1
-      if (encoderValue != CODE2VALUE) { state = ST_SEEK_CODE_1; return; }
+      if (encoderValue != CODE2_VALUE) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for encoder grace timeout before accepting code
-      if ((millis() - graceTimer) > CODE2GRACETIMEOUT) { state = ST_ACCEPT_CODE_2; return; }
+      if ((millis() - graceTimer) > CODE2_GRACETIMEOUT) { state = ST_ACCEPT_CODE_2; return; }
 
       break;
 
@@ -228,10 +228,10 @@ void loop() {
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
       // If encoderDirection is not correct direction, go back to seek state1, but only after move away from previous code
-      if (encoderValue != CODE2VALUE && encoderDirection != CODE3DIRECTION) { state = ST_SEEK_CODE_1; return; }
+      if (encoderValue != CODE2_VALUE && encoderDirection != CODE3_DIRECTION) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for code arrival
-      if (encoderValue == CODE3VALUE && encoderDirection == CODE3DIRECTION) {
+      if (encoderValue == CODE3_VALUE && encoderDirection == CODE3_DIRECTION) {
         relayAudioClue();
         graceTimer = millis();
         state = ST_WAIT_CODE_3;
@@ -243,10 +243,10 @@ void loop() {
       if ((millis() - alarmTimer) > ALARM_TIMEOUT) { state = ST_ALARM_TRIGGERED; return; }
 
       // If encoderValue has changed away from Code, go back to seeking code1
-      if (encoderValue != CODE3VALUE) { state = ST_SEEK_CODE_1; return; }
+      if (encoderValue != CODE3_VALUE) { state = ST_SEEK_CODE_1; return; }
 
       // Wait for encoder grace timeout before accepting code
-      if ((millis() - graceTimer) > CODE3GRACETIMEOUT) { state = ST_ACCEPT_CODE_3; return; }
+      if ((millis() - graceTimer) > CODE3_GRACETIMEOUT) { state = ST_ACCEPT_CODE_3; return; }
 
       break;
 
