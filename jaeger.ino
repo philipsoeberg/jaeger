@@ -113,7 +113,7 @@ void loop() {
   static unsigned long audioVisualTimerIteration = 0;
 
   #ifdef SERIAL_DEBUG
-    static enum State oldState = -1;
+    static enum States oldState = -1;
     if (oldState != state) {
       Serial.print("State Change: From: ");
       Serial.print(oldState);
