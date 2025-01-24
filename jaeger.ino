@@ -27,7 +27,7 @@
 #define RELAY_AUDIO_CLUE_DELAY (10)      // in ms
 #define RELAY_DOOROPEN_DELAY   (300)     // in ms
 #define LED_VISUAL_CLUE_DELAY  (10)      // in ms
-#define ALARM_TIMEOUT          (long)(900000)  // in ms. 15 minutes
+#define ALARM_TIMEOUT          (unsigned long)(900000)  // in ms. 15 minutes
 
 // Encoder value
 #define ENCODER_RESET_VALUE   (0)
