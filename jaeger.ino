@@ -57,6 +57,7 @@ volatile bool buttonPressed = false;
 #define CODE3_GRACETIMEOUT (unsigned long)(4500) // Code 3 grace periode with no encoder movement before code accept
 
 enum States {
+  ST_POWERON,
   ST_RESET,
   ST_IDLING_WAITING_TO_BEGIN,
   ST_SEEK_CODE_1,
@@ -73,7 +74,7 @@ enum States {
   ST_ALARM_TRIGGERED,
   ST_ALARM_TRIGGERED_BODY,
 };
-enum States state = ST_RESET;
+enum States state = ST_POWERON;
 
 // ****************************************************************
 // *** SETUP                                                    ***
@@ -112,18 +113,33 @@ void loop() {
   static unsigned long audioVisualTimerIteration = 0;
 
   #ifdef SERIAL_DEBUG
-    if(encoderValue != prevEncoderValue) {
-      Serial.print(" , encoderValue:");
-      Serial.print(encoderValue);
-      Serial.print(" , encoderDirection:");
-      Serial.print(encoderDirection);
-      Serial.print(" , state:");
+    static enum State oldState = -1;
+    if (oldState != state) {
+      Serial.print("State Change: From: ");
+      Serial.print(oldState);
+      Serial.print(" To: ");
       Serial.println(state);
+      oldState = state;
     }
   #endif
+  
+  // #ifdef SERIAL_DEBUG
+  //   if(encoderValue != prevEncoderValue) {
+  //     Serial.print(" , encoderValue:");
+  //     Serial.print(encoderValue);
+  //     Serial.print(" , encoderDirection:");
+  //     Serial.print(encoderDirection);
+  //     Serial.print(" , state:");
+  //     Serial.println(state);
+  //   }
+  // #endif
 
   switch(state) {
 
+    case ST_POWERON:
+      state = ST_RESET;
+      break;
+    
     case ST_RESET:
       ledOff();
       armButtonPressed = false;
