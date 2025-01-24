@@ -298,13 +298,13 @@ void loop() {
         audioVisualTimerIteration++; //this will ++ every 10ms'ich
         audioVisualTimer = millis();
       }
-      if (audioVisualTimerIteration % 25 == 0) {  //every 250ms
+      if ((audioVisualTimerIteration % (unsigned long)25) == 0) {  //every 250ms
         ledRedOn();
       }
-      if (audioVisualTimerIteration % 50 == 0) {  //every 500ms
+      if ((audioVisualTimerIteration % (unsigned long)50) == 0) {  //every 500ms
         ledOff();
       }
-      if (audioVisualTimerIteration % 10 == 0) {  //every 100ms
+      if ((audioVisualTimerIteration % (unsigned long)10) == 0) {  //every 100ms
         if (audioVisualTimerIteration < 500) {    //for up to 5000 ms (5 seconds)
           relayAudioClue();                       //do relayAudioClue
         }
