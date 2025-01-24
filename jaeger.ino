@@ -40,6 +40,7 @@ volatile int encoderValue = ENCODER_RESET_VALUE;
 volatile bool encoderDirection = ENCODER_DIRECTION_CW;
 
 // Button pressed flag
+volatile bool armButtonPressed = false;
 volatile bool buttonPressed = false;
 
 // Pass codes
@@ -106,14 +107,9 @@ void loop() {
   static int prevEncoderValue = ENCODER_OUTSIDE_RANGE;
   static unsigned long alarmTimer = 0;
   static unsigned long graceTimer = 0;
-  static bool acceptButtonChange = false;
   static bool resetAudioVisualCycle = false;
   static unsigned long audioVisualTimer = 0;
   static unsigned long audioVisualTimerIteration = 0;
-
-  if (acceptButtonChange == false && buttonPressed == true) {
-    buttonPressed = false;
-  }
 
   #ifdef SERIAL_DEBUG
     if(encoderValue != prevEncoderValue) {
@@ -130,7 +126,8 @@ void loop() {
 
     case ST_RESET:
       ledOff();
-      acceptButtonChange = false;
+      armButtonPressed = false;
+      buttonPressed = false;
       prevEncoderValue = encoderValue;
       state = ST_IDLING_WAITING_TO_BEGIN;
       resetAudioVisualCycle = true;
@@ -266,14 +263,14 @@ void loop() {
       // Open door, game won
       relayOpenDoor();
 
+      // Listen for button changes
+      armButtonPressed = true;
+      
       // Wait for game reset
       state = ST_IDLING_WAIT_GAME_RESET;
       break;
     
-    case ST_IDLING_WAIT_GAME_RESET:
-      // Listen for button changes
-      if (acceptButtonChange == false) { acceptButtonChange = true; }
-      
+    case ST_IDLING_WAIT_GAME_RESET:      
       // If button is pressed, reset statemachine
       if (buttonPressed == true) { state = ST_RESET; return; }
       break;
@@ -282,13 +279,11 @@ void loop() {
       // Setup alarm
       audioVisualTimer = millis();
       audioVisualTimerIteration = 0;
+      armButtonPressed = true;
       state = ST_ALARM_TRIGGERED_BODY;
       return;
     
     case ST_ALARM_TRIGGERED_BODY:
-      // Listen for button changes
-      if (acceptButtonChange == false) { acceptButtonChange = true; }
-
       // If button is pressed, reset statemachine
       if (buttonPressed == true) { state = ST_RESET; return; }
 
@@ -377,7 +372,7 @@ void read_encoder_irqhandler() {
 }
 
 void read_button_irqhandler() {
-  buttonPressed = true;
+  if (armButtonPressed == true) { buttonPressed = true; }
 }
 
 void ledOff() {
