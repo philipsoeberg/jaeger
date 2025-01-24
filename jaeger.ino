@@ -315,8 +315,8 @@ void loop() {
       if ((audioVisualTimerIteration % (unsigned long)50) == 0) {  //every 500ms
         ledOff();
       }
-      if ((audioVisualTimerIteration % (unsigned long)10) == 0) {  //every 100ms
-        if (audioVisualTimerIteration < 500) {    //for up to 5000 ms (5 seconds)
+      if ((audioVisualTimerIteration % (unsigned long)25) == 0) {  //every 250ms
+        if (audioVisualTimerIteration < 20) {    //for up to 5000 ms (5 seconds)
           relayAudioClue();                       //do relayAudioClue
         }
       }
