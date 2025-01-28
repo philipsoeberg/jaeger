@@ -1,5 +1,13 @@
-/* Sketch made by Thomas Jensen for Dinizuli 2025 - Franz Jäger v5 - 2025-01-19
-  
+/* Sketch made by Thomas Jensen & Philip Soeberg for Dinizuli 2025 - Franz Jäger v5.2 - 2025-01-25
+   This code was used at event 2025-01-(25-26)
+   Note: Code was changed from v5 to remove relay clicks in Alarm state, reducing risk of game reset at alarm condition due to relay drawing current and lowering voltage on battery pack.
+   Suspicion relating to power supply wiring gauge being a too small for power supply, causing voltage drop when relay drawing current.
+   This condition is NOT obeserved in test when monitoring serial port from PC as the usb conneciton maintins power supply to Nano board, preventing a reset.
+   2025-01-27 update:
+   ** The above hack worked and no Nano board reset was experienced. However due to low temperatures ~1C (reduced battery power) combined with a short relay ON engagement (300ms)
+   ** meant the relay didn't open door when batteries were used for a few hours. The game play continued without failure and the green light illuminates when code has been found.
+   ** The last team had a green Led lights come on very briefly (observed) and the safe immediately went to Alarm state - Is this possible or an illusion?? 
+   
    Designed HW setup (Arduino Every):
    pin 2+3 : inv A and inv B terminals on a 100pp precicion rotary encoder (clockwise rotation for increasing values 0-99)
    pin 7   : Button (to gnd)
@@ -48,7 +56,7 @@ volatile bool buttonPressed = false;
 #define CODE1_DIRECTION (ENCODER_DIRECTION_CCW)  // Required direction to accept code
 #define CODE1_GRACETIMEOUT (unsigned long)(1500) // Code 1 grace periode with no encoder movement before code accept
 
-#define CODE2_VALUE (25)                         // Code 2
+#define CODE2_VALUE (31)                         // Code 2
 #define CODE2_DIRECTION (ENCODER_DIRECTION_CW)   // Required direction to accept code
 #define CODE2_GRACETIMEOUT (unsigned long)(3000) // Code 2 grace periode with no encoder movement before code accept
 
@@ -315,12 +323,13 @@ void loop() {
       if ((audioVisualTimerIteration % (unsigned long)50) == 0) {  //every 500ms
         ledOff();
       }
+      /*
       if ((audioVisualTimerIteration % (unsigned long)25) == 0) {  //every 250ms
         if (audioVisualTimerIteration < 500) {    //for up to 5000 ms (5 seconds)
           relayAudioClue();                       //do relayAudioClue
         }
       }
-
+      */
       break;
 
     default:
